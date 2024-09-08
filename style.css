@@ -395,7 +395,7 @@ li {
     width: 100%;
     background: #3586ff;
     height: 50px;
-    margin-top: 180px;
+    margin-top: 150px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -404,7 +404,6 @@ li {
   
   .footer p {
     color: #fff;
-    margin: 15px 0 10px 0;
     font-size: 1rem;
     font-weight: 300;
   }
