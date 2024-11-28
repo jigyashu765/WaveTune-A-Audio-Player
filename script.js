@@ -32,12 +32,12 @@ document.addEventListener('DOMContentLoaded', function () {
         volumeBar = document.getElementById('volumeBar');
 
     // Build playlist
-songs.forEach(function (song, key) {
-    var songNumber = (key + 1).toString().padStart(2, '0');
+    songs.forEach(function (song, key) {
+        var songNumber = (key + 1).toString().padStart(2, '0');
 
-    // Create list item
-    var li = document.createElement('li');
-    li.innerHTML = `
+        // Create list item
+        var li = document.createElement('li');
+        li.innerHTML = `
         <div class="plItem">
             <div class="plItem-left">
                 <span class="plNum">${songNumber}.</span>
@@ -48,37 +48,37 @@ songs.forEach(function (song, key) {
                 <span class="plDuration">Loading...</span>
             </div>
         </div>`;
-    
-    // Append the list item to the playlist
-    plList.appendChild(li);
 
-    
-    // Get and display the duration
-    getDuration("./songs/"+song.filePath+".mp3", function (duration) {
-        li.querySelector('.plDuration').textContent = duration;
+        // Append the list item to the playlist
+        plList.appendChild(li);
+
+
+        // Get and display the duration
+        getDuration("./songs/" + song.filePath + ".mp3", function (duration) {
+            li.querySelector('.plDuration').textContent = duration;
+        });
     });
-});
 
-var liElements = plList.querySelectorAll('li');
+    var liElements = plList.querySelectorAll('li');
 
-// Function to get the duration of a song
-function getDuration(src, callback) {
-    var audio = new Audio(src);
-    audio.addEventListener("loadedmetadata", function () {
-        let length = audio.duration;
-        let hrs = Math.floor(length / 3600);
-        let mins = Math.floor((length % 3600) / 60);
-        let secs = Math.floor(length % 60);
+    // Function to get the duration of a song
+    function getDuration(src, callback) {
+        var audio = new Audio(src);
+        audio.addEventListener("loadedmetadata", function () {
+            let length = audio.duration;
+            let hrs = Math.floor(length / 3600);
+            let mins = Math.floor((length % 3600) / 60);
+            let secs = Math.floor(length % 60);
 
-        // Format the duration
-        let formattedTime = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-        if (hrs > 0) {
-            formattedTime = `${hrs}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
-        }
+            // Format the duration
+            let formattedTime = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            if (hrs > 0) {
+                formattedTime = `${hrs}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            }
 
-        callback(formattedTime);
-    });
-}
+            callback(formattedTime);
+        });
+    }
 
 
     // Handle play/pause
@@ -92,6 +92,7 @@ function getDuration(src, callback) {
 
     audio.addEventListener('play', function () {
         playing = true;
+        addRotation(index);
         btnPlayPause.className = 'bi bi-pause-btn-fill';
         npAction.textContent = 'Now Playing...';
     });
@@ -104,6 +105,7 @@ function getDuration(src, callback) {
 
     audio.addEventListener('ended', function () {
         npAction.textContent = 'Paused...';
+        clearRotation();
         if (index + 1 < songCount) {
             index++;
             loadTrack(index);
@@ -117,7 +119,7 @@ function getDuration(src, callback) {
 
     // Previous button
     btnPrev.addEventListener('click', function () {
-        progressBar.style.width = 0+"%";
+        progressBar.style.width = 0 + "%";
         if (index > 0) {
             index--;
             loadTrack(index);
@@ -131,11 +133,12 @@ function getDuration(src, callback) {
 
     // Next button
     btnNext.addEventListener('click', function () {
-        progressBar.style.width = 0+"%";
+        progressBar.style.width = 0 + "%";
         if (index < songCount - 1) {
             index++;
             loadTrack(index);
             if (playing) audio.play();
+            clearRotation();
         } else {
             audio.pause();
             index = 0;
@@ -155,11 +158,17 @@ function getDuration(src, callback) {
     function loadTrack(id) {
         var selectedLi = document.querySelector('.plSel');
         if (selectedLi) selectedLi.classList.remove('plSel');
-        
+
         liElements[id].classList.add('plSel');
         npTitle.textContent = songs[id].songName;
         index = id;
         audio.src = mediaPath + songs[id].filePath + extension;
+
+        // Clear and add rotation
+        if (audio.play()) {
+            addRotation(id);
+        }
+        clearRotation();
     }
 
     function playTrack(id) {
@@ -186,7 +195,7 @@ function getDuration(src, callback) {
         const progressBar = document.getElementById('progressBar');
         progressBar.style.width = progress + '%';
     });
-    
+
     // Allow the user to seek through the audio (optional with click event)
     document.getElementById('progressContainer').addEventListener('click', function (e) {
         const containerWidth = this.offsetWidth;
@@ -194,7 +203,7 @@ function getDuration(src, callback) {
         const newTime = (clickX / containerWidth) * audio.duration;
         audio.currentTime = newTime;
     });
-    
+
 
     // Volume control
     volumeBar.addEventListener('input', function () {
@@ -216,14 +225,25 @@ function getDuration(src, callback) {
         const minutes = Math.floor(time / 60);
         const seconds = Math.floor(time % 60).toString().padStart(2, '0');
         element.textContent = `${minutes}:${seconds}`;
+        addRotation()
+    }
+
+    // Clear rotation from all images
+    function clearRotation() {
+        document.querySelectorAll('.img').forEach(function (img) {
+            img.classList.remove('rotate');
+        });
+    }
+
+    // Add rotation from all images
+    function addRotation(id) {
+        document.querySelectorAll('.img')[id].classList.add('rotate');
     }
 
     extension = audio.canPlayType('audio/mpeg') ? '.mp3' : audio.canPlayType('audio/ogg') ? '.ogg' : '';
     loadTrack(index);
 
-    var tYear = document.getElementById("todayYear");
     var year = new Date;
-
-    tYear.innerText = year.getFullYear();
+    document.getElementById("todayYear").innerText = year.getFullYear();
 
 });
